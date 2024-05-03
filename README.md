@@ -54,16 +54,172 @@ poetry run uvicorn app.main:app --reload
 
 Note: `poetry run` will run under poetry virtualenv.
 
-6. Check it
+6. Check it at http://127.0.0.1:8000
+   You will get response like,
 
-- http://127.0.0.1:8000
-- API docs:
-  - http://127.0.0.1:8000/docs
+```
+{
+  "message": "Hello World"
+}
+```
+
+7. Play CRUD operation through API docs
+
+- http://127.0.0.1:8000/docs (use this)
   - http://127.0.0.1:8000/redoc
+
+**Examples**
+
+Step 1: Expand `/api/v1/users/register` to see user sign up endpoint
+
+Step 2: Click `Try it out` and fill in the form, and click `Execute`
+
+```json
+{
+  "password": "password",
+  "email": "user01@example.com",
+  "full_name": "user 01"
+}
+```
+
+You will have response like,
+
+```json
+{
+  "email": "user01@example.com",
+  "is_active": true,
+  "is_superuser": false,
+  "name": null,
+  "created_at": "2024-05-03T09:40:15.328062-07:00",
+  "id": 11
+}
+```
+
+Step 3: login `/api/v1/login/access-token`
+
+Fill in username and password from above
+
+You will get response like,
+
+```json
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTU0NDU4MTUsInN1YiI6IjExIn0.F1IgIz15BUXsDP7V4AmZxaLpSCLTg2UibZxQoVYgHLQ",
+  "token_type": "bearer"
+}
+```
 
 Note: You might need to add `export PYTHONPATH=$(pwd):$PYTHONPATH` to `~/.bash_profile` if you get an error like "Cannot import or no app module".
 
-## Run with Docker
+## Manage dependencies
+
+If you want to add a new package, add it to `pyproject.toml` and run
+
+```bash
+poetry lock
+poetry install
+```
+
+## Set up database
+
+Install postgresql
+
+```
+brew install postgresql
+brew services start postgresql
+brew services stop postgresql
+```
+
+Check if it's running
+
+```
+ps -ef | grep postgres
+```
+
+Step 1: create a database user `postgres`
+
+Create user with password
+
+```
+createuser -U postgres -W
+```
+
+Step 2: Create database with name `fastapi_db`
+
+```bash
+createdb -U postgres -w fastapi_db
+```
+
+Step 3: Initial database migration
+
+```bash
+alembic upgrade head
+
+python -m app.init_db
+```
+
+Note: You can also run the script to step 2 and step 3.
+
+```
+./setup.sh
+```
+
+### Database Migration
+
+This project has initial migration set up, in `alembic` folder, if you want to set up from scrach, you can delete the folder and use the follow steps;
+
+**Set up alembic**
+
+```bash
+alembic init alembic
+```
+
+it will produce,
+
+- alembic/env.py:
+  - where you 1) set up dabasebase connection and 2) provide models(tables) info to alembic. You can check that more details for the setup.
+- alembic.ini
+
+**Initial migration**
+
+Step 2: create a migration file
+
+```bash
+alembic revision --autogenerate -m "Initial migration"
+```
+
+It will create a new migration file in alembic/versions folder.
+
+Step 3: run migration and push the version to alembic_version table.
+
+```bash
+alembic upgrade head
+```
+
+**Further Development**
+
+If you add a new model in app/models, you need to run the following command to generate a new migration file.
+
+```
+alembic revision --autogenerate -m "description of your change"
+alembic upgrade head
+```
+
+## Testing
+
+For a simple local test, we need to set up a separate database for test, e.g. `fastapi_db_test`.
+
+**Steps**
+
+- Change db name to `fastapi_db_test` in `.env`
+- Run `./setup` to set up initial migration
+- Create `.env.test.local` by copying `.env`
+  - It will be loaded when running test in `app/core/config.py`
+- Change back to original database name in `.env`
+- Run `./scripts/test.sh`
+
+Note: We can also use docker for setting up test environment.
+
+## Run with Docker (Advanced)
 
 1. Build image
 
@@ -98,80 +254,6 @@ Some useful docker commands:
 - API docs:
   - http://127.0.0.1/docs
   - http://127.0.0.1/redoc
-
-## Manage dependencies
-
-```bash
-poetry lock
-poetry install
-```
-
-Add a new dependency to `pyproject.toml`
-
-## Set up database
-
-Install postgresql
-
-```
-brew install postgresql
-brew services start postgresql
-brew services stop postgresql
-```
-
-Check if it's running
-
-```
-ps -ef | grep postgres
-```
-
-Create user with password
-
-```
-createuser -U postgres -W
-```
-
-Create database with name `fastapi_db`
-
-```
-createdb -U postgres -w fastapi_db
-```
-
-Set up initial data
-
-```
-./setup.sh
-```
-
-### Database Migration
-
-Initial migration
-
-```
-alembic revision --autogenerate -m "Initial migration"
-alembic upgrade head
-```
-
-Further Developing
-
-```
-alembic revision --autogenerate -m "description of your change"
-alembic upgrade head
-```
-
-## Testing
-
-For a simple local test, we need to set up a separate database for test, e.g. `fastapi_db_test`.
-
-## Steps
-
-- Change db name to `fastapi_db_test` in `.env`
-- Run `./setup` to set up initial migration
-- Create `.env.test.local` by copying `.env`
-  - It will be loaded when running test in `app/core/config.py`
-- Change back to original database name in `.env`
-- Run `./scripts/test.sh`
-
-Note: We can also use docker for setting up test environment.
 
 ## Notes
 
