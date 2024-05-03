@@ -49,7 +49,27 @@ Install dependencies and initial database migration
 or
 
 ```bash
-poetry run uvicorn app.main:app --reload
+poetry run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+If you get error,
+
+```
+ERROR:    [Errno 48] Address already in use
+```
+
+The server is running at port 8000, you can kill the process and try again.
+
+Find pid for 8000
+
+```bash
+lsof -i tcp:8000
+```
+
+Kill the process,
+
+```bash
+kill -9 pid_from_above_step
 ```
 
 Note: `poetry run` will run under poetry virtualenv.
