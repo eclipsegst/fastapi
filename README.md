@@ -149,10 +149,46 @@ brew services start postgresql
 brew services stop postgresql
 ```
 
-Check if it's running
+Check if it's running,
 
 ```
-ps -ef | grep postgres
+~/$ ps -ef | grep postgres
+  501 47222     1   0 10:11PM ??         0:00.03 /opt/homebrew/opt/postgresql@14/bin/postgres -D /opt/homebrew/var/postgresql@14
+  501 47225 47222   0 10:11PM ??         0:00.00 postgres: checkpointer
+  501 47226 47222   0 10:11PM ??         0:00.02 postgres: background writer
+  501 47227 47222   0 10:11PM ??         0:00.01 postgres: walwriter
+  501 47228 47222   0 10:11PM ??         0:00.00 postgres: autovacuum launcher
+  501 47229 47222   0 10:11PM ??         0:00.00 postgres: stats collector
+  501 47230 47222   0 10:11PM ??         0:00.00 postgres: logical replication launcher
+  501 47400 47222   0 10:11PM ??         0:00.02 postgres: postgres abcxyz_db 127.0.0.1(51770) idle
+  501 50722 13415   0 10:13PM ttys007    0:00.00 grep postgres
+```
+
+or use
+
+```
+$ brew services list
+```
+
+if it's running you will gets something like,
+
+```
+Name Status User File
+postgresql@14 started root ~/Library/LaunchAgents/homebrew.mxcl.postgresql@14.plist
+unbound none
+```
+
+If you get error like,
+
+```
+Error: Failure while executing; `/bin/launchctl bootstrap gui/501 /Users/hntlabs/Library/LaunchAgents/homebrew.mxcl.postgresql@14.plist` exited with 5.
+```
+
+find and remove the `postmaster.pid`
+
+```bash
+rm /opt/homebrew/var/postgresql@14/postmaster.pid
+rm /usr/local/var/postgres@14/postmaster.pid
 ```
 
 Step 1: create a database user `postgres`
@@ -160,7 +196,9 @@ Step 1: create a database user `postgres`
 Create user with password
 
 ```
+
 createuser -U postgres -W
+
 ```
 
 Step 2: Create database with name `fastapi_db`
