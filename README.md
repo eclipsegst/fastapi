@@ -237,6 +237,13 @@ it will produce,
   - where you 1) set up dabasebase connection and 2) provide models(tables) info to alembic. You can check that more details for the setup.
 - alembic.ini
 
+**Important:** if you set up alembic from scratch, you need to make sure those two lines or equivalent are in `alembic/env.py`, otherwise, the initial migration file won't identify existing models (tables).
+
+```
+from app.database import Base
+from app import models  # noqa
+```
+
 **Initial migration**
 
 Step 2: create a migration file
@@ -255,10 +262,10 @@ alembic upgrade head
 
 **Further Development**
 
-If you add a new model in app/models, you need to run the following command to generate a new migration file.
+If you add a new model in `app/models` and `app/models/__init__.py`, you need to run the following command to generate a new migration file.
 
 ```
-alembic revision --autogenerate -m "description of your change"
+alembic revision --autogenerate -m "Add new table"
 alembic upgrade head
 ```
 
